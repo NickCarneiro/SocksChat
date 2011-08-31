@@ -1,0 +1,134 @@
+//The client side state and settings of the app are in this eponymous global
+var sockschat = {};
+sockschat.settings = {
+	message_poll_frequency: 1000, //how often to grab new messages in milliseconds
+	user_poll_frequency: 5000 //how often to grab the user list in milliseconds
+	
+}
+
+//The object format is just the output of couchdb
+//An example object is shown below.
+sockschat.state = {
+
+	
+	username: ""
+	
+};
+
+
+
+
+function renderMessage(username, message){
+
+		$("#chat_messages").append("<span class=\"username\">" + 
+			username
+			+ ": </span><span class=\"message\">"+ 
+			message
+			+"</span><br />");
+		//scroll to newest messages
+		$("#chat_box").prop('scrollTop',$("#chat_box").prop('scrollHeight'));	
+
+	//update last message received text
+	$("#last_received").text("Last activity " + 
+		jQuery.timeago(new Date()));
+	
+}
+
+
+
+
+function renderUsers(json){
+	
+	//sort usernames in alpha order
+	json.sort(compareUsers);
+	$("#user_list").empty();
+	for(var i = 0; i < json.length; i++){
+		$("#user_list").append("<li>"+json[i].value.username+"</li>");
+	}
+	
+}
+
+//Must specify function to sort objects on one property
+//http://www.webdotdev.com/nvd/content/view/878/
+function compareUsers(a, b) {
+	var nameA = a.value.username.toLowerCase( );
+	var nameB = b.value.username.toLowerCase( );
+	if (nameA < nameB) {return -1}
+	if (nameA > nameB) {return 1}
+	return 0;
+}
+
+function sendMessage(){
+	if($("#chat_input").val() == ""){
+		return;
+	}
+
+	var message = $("#chat_input").val();
+	console.log(message);
+	$("#chat_input").val("");
+	
+
+
+	sockschat.socket.emit('clientmessage', 
+		{ username: sockschat.state.username, message: message, });
+
+}
+
+function showChat(){
+	//verify that username is valid
+	
+	if($("#chat_username").val().length < 3 || $("#chat_username").val() > 20){
+		$("#name_error").text("Choose a username between 3 and 20 characters.");
+		return;
+	}
+	var alphanumeric = /^[0-9a-zA-Z_]+$/;
+	if(!$("#chat_username").val().match(alphanumeric)){
+		$("#name_error").text("Choose a username with only letters, numbers, and the underscore.")
+		return;
+	}
+	sockschat.state.username = $("#chat_username").val();
+	
+	
+	
+	$("#chat_username_prompt").hide();
+	$("#chat_container").show();
+	$("#chat_input").focus();
+	sockschat.state.poll = true;
+}
+
+
+$(function(){
+	$("#chat_container").hide();
+	$("#chat_username").focus();
+	
+	 sockschat.socket = io.connect('http://trillworks.com:3000');
+	 
+	 sockschat.socket.on('servermessage', function (data) {
+	 	console.log("Rendering message from server");
+	 	renderMessage(data.username, data.message);
+	 });
+	 
+	 sockschat.socket.on('greeting', function (data) {
+	 	console.log(data.greeting);
+	 
+	 });
+	 
+	$("#chat_submit_username").click(function(){
+		showChat();
+	});
+	
+	$("#chat_username").keypress(function(e){
+		if(e.which == 13){
+			showChat();
+		}
+	});
+	$("#chat_input").keypress(function(e){
+		if(e.which == 13){	
+			sendMessage() ;
+		}
+	});
+	
+	$("#chat_submit").click(function(){
+		sendMessage();
+	});
+});

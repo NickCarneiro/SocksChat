@@ -1,0 +1,29 @@
+{
+  "author": "Nick Carneiro (http://trillworks.com/nick)",
+  "name": "SocksChat",
+  "description": "A basic Express app with a layout based on HTML5 Boilerplate.",
+  "version": "0.0.1",
+  "homepage": "https://github.com/gaarf/express-boilerplate",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/gaarf/express-boilerplate.git"
+  },
+  "main": "app.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "expresso"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "dependencies": {
+    "express": ">=2.3.2",
+    "underscore": ">=1.1.6",
+    "ejs": ">=0.4.1"
+  },
+  "devDependencies": {
+    "expresso": "*"
+  }
+}
